@@ -23,7 +23,7 @@ local cDefaultButtonValue       = "SEÇİNİZ"
         overImage = oImage,
         noLines = false,
         visibleCellCount = count,
-        cellData = cellData,
+        rowProperties = rowProperties,
         userCustomDataList = Array,
         ID = ID,
     }
@@ -36,65 +36,70 @@ local cDefaultButtonValue       = "SEÇİNİZ"
     }
 --]]
 
+--[[ dataList = {
+        value = value,
+    }
+--]]
+
 function DropDownMenu.new( params )
 
     -- New DropDownMenu object
     local dropDownMenu  = display.newGroup()
-    
-    local cellData         = params.cellData or {}
+    -----------------------------
+    -- DropDownMenu Properties --
+    -----------------------------
+    -- Required --
+    local name             = params.name
     local x                = params.x
     local y                = params.y
-    local noLines          = params.noLines
-    local visibleCellCount = params.visibleCellCount or cDefaultVisibleCellCount
-    local parent           = params.parent
-    local delegate         = params.delegate
-    local ID               = params.ID
-    local customParams     = params.customParams
-    local fontSize         = params.fontSize or cDefaultFontSize
-    --parent:insert(dropDownMenu)
+    local width            = params.width
+    local height           = params.height
+    local onRowSelected    = params.onRowSelected
     
-    -- Properties
+    -- Optional --
+    local buttonDefaultImageName = params.defaultImage     or nil
+    local buttonOverImageName    = params.overImage        or nil
+    local noLines                = params.noLines          or false
+    local visibleCellCount       = params.visibleCellCount or cDefaultVisibleCellCount
+    local fontSize               = params.fontSize         or cDefaultFontSize
+    -----------------------------
+    
+    -- New Row Property object
+    local rowProperties = params.rowProperties or {}
+    -----------------------------
+    --      Row Properties     --
+    -----------------------------
+    -- Optional --
+    local isCategory       = rowProperties.isCategory or false
+    local rowHeight        = rowProperties.rowHeight  or height
+    local rowColor         = rowProperties.rowColor   or { default={ 1, 1, 1 }, over={ 1, 0.5, 0, 0.2 } }
+    local lineColor        = rowProperties.lineColor  or { 0.5, 0.5, 0.5 }
+    local labelFont        = nil
+    local labelSize        = nil
+    -----------------------------
+    
+    -----------------------------
+    --        Data List        --
+    -----------------------------
+    local dataList = params.dataList or {}
+    
+    -- DDM Inner Properties
     local ddmTable       = nil
     local ddmTableBG     = nil
+    -- Button Inner Properties
     local button         = nil
     local buttonBG       = nil
     local buttonLabel    = nil
+    local buttonImage    = nil
     
+    -- Flags
+    local isButtonActive = false
     local ddmValue       = cDefaultButtonValue
-    local isTableHidden = true
+    local isTableHidden  = true
     
-    -- Button Properties
-    local buttonImage               = nil
-    local buttonDefaultImageName    = (params.defaultImage or nil)
-    local buttonOverImageName       = (params.overImage    or nil)
-    local buttonWidth               = (params.buttonWidth  or 360)
-    local buttonHeight              = (params.buttonHeight or 40)
-    local isButtonActive            = false
-    
-    -- Cell Properties
-    local isCategory    = cellData.isCategory or false
-    local rowHeight     = cellData.rowHeight  or buttonHeight
-    local rowColor      = cellData.rowColor   or { default={ 1, 1, 1 }, over={ 1, 0.5, 0, 0.2 } }
-    local lineColor     = cellData.lineColor  or { 0.5, 0.5, 0.5 }
-    local cellHeight    = cellData.rowHeight  or buttonHeight
-    local cellWidth     = buttonWidth
-    
-    -- User Data List Property
-    local dataList = params.dataList or {}
-    
-    dropDownMenu.x, dropDownMenu.y = x, y
-    
-    -- Instantiate Button
-    buttonBG = display.newRoundedRect(dropDownMenu, -cDefaultBorder, -cDefaultBorder, buttonWidth + cDefaultBorder*2, buttonHeight + cDefaultBorder*2, 5)
-    buttonBG:setFillColor( 0.5, 0.5, 0.5 )
-    
-    button = display.newRect(dropDownMenu, 0, 0, buttonWidth, buttonHeight)
-    button:setFillColor( 1, 1, 1 )
-    
-    buttonLabel = display.newText(dropDownMenu, "SEÇİNİZ", 10, 10, buttonWidth, buttonHeight, nil, fontSize)
-    buttonLabel:setFillColor(0)
-    
-    -- Table Delegate - Touch Events
+    -----------------------------------------
+    --       DDM Table Touch Events        --
+    -----------------------------------------
     function dropDownMenu.onRowTouch( event )
 
         if event.phase == "press" then
@@ -102,13 +107,15 @@ function DropDownMenu.new( params )
         elseif event.phase == "release" then
             local params        = event.row.params
             local index         = event.row.index
-            local ID            = ID
-            ddmValue            = params.value
-            buttonLabel.text    = ddmValue
+            buttonLabel.text    = params.value
             dropDownMenu:hideTable(true)
             
-            -- Call delegate method
-            delegate.didDDMItemSelected(dataList[index], ID, index)
+            -- Invoke callback method
+            onRowSelected{
+                dataList[index],
+                name,
+                index,
+            }
         end
 
     end
@@ -132,28 +139,57 @@ function DropDownMenu.new( params )
 
     end
     
-     -- Instantiate Table
-    ddmTableBG = display.newRoundedRect(-cDefaultBorder,cellHeight, buttonWidth + cDefaultBorder*2, (visibleCellCount * cellHeight) + cDefaultBorder*2, 5)
-    ddmTableBG:setFillColor( 0.5, 0.5, 0.5 )
+    ------------------------
+    -- Instantiate Button --
+    ------------------------
+    local buttonWidth  = width + cDefaultBorder*2
+    local buttonHeight = height + cDefaultBorder*2
+    buttonBG = display.newRoundedRect(dropDownMenu, 
+                                    -cDefaultBorder, 
+                                    -cDefaultBorder, 
+                                    buttonWidth, 
+                                    buttonHeight, 
+                                    5)                           
+    buttonBG:setFillColor( 0.5, 0.5, 0.5 )
     
+    -- Button object
+    button = display.newRect(dropDownMenu, 0, 0, width, height)
+    button:setFillColor( 1, 1, 1 )
+    
+    -- Button laber
+    buttonLabel = display.newText(dropDownMenu, "CHOOSEN", 10, 10, buttonWidth, buttonHeight, nil, fontSize)
+    buttonLabel:setFillColor(0)
+    
+    -----------------------
+    -- Instantiate Table --
+    -----------------------
     ddmTable = widget.newTableView{
-        width = buttonWidth,
-        height = visibleCellCount * cellHeight,
         x = 0,
         y = buttonHeight + 2,
-        
-        noLines = (noLines or true),
+        width = buttonWidth,
+        height = visibleCellCount * rowHeight,
+        noLines = noLines,
         backgroundColor = { 1, 1, 1 },
-        
         onRowTouch = dropDownMenu.onRowTouch,
         onRowRender = dropDownMenu.onRowRender,
     }
+    
+    ddmTableBG = display.newRoundedRect(-cDefaultBorder,
+                                        rowHeight, 
+                                        buttonWidth + cDefaultBorder*2, 
+                                        (visibleCellCount * rowHeight) + cDefaultBorder*2, 
+                                        5)
+    ddmTableBG:setFillColor( 0.5, 0.5, 0.5 )
+    
     dropDownMenu:insert(dropDownMenu.numChildren+1, ddmTableBG)
     dropDownMenu:insert(dropDownMenu.numChildren+1, ddmTable)
+    dropDownMenu.x, dropDownMenu.y = x, y
     
-    --Instantiate ddm table
+    ---------------------------
+    -- Instantiate ddm table --
+    ---------------------------
     for i = 1, #dataList do
-        local params = dataList[i]
+        local params = dataList[1]
         
         ddmTable:insertRow{
                          
@@ -165,11 +201,12 @@ function DropDownMenu.new( params )
                           }
     end
     
-    -- Drop Down Menu Methods
+    ------------------------------------------------------
+    --                    METHOD LIST                   --
+    ------------------------------------------------------
     function dropDownMenu:loadData(dataList)
         
         ddmTable:deleteAllRows()
-        
         for i = 1, #dataList do
             local params = dataList[i]
 
@@ -209,14 +246,14 @@ function DropDownMenu.new( params )
         isTableHidden        = value
         ddmTable.isVisible   = not isTableHidden
         ddmTableBG.isVisible = not isTableHidden
-        delegate.didHideDDMTable( ID, isTableHidden)
+        --delegate.didHideDDMTable( ID, isTableHidden)
     end
     
     function dropDownMenu:hideDDM ( isHidden)
         self.isVisible = not isHidden
     end
     
-    -- Button Touch Methods
+    -- Button Touch Methods --
     function dropDownMenu:touch(event)
         
         if event.phase == "began" then
@@ -250,23 +287,10 @@ function DropDownMenu.new( params )
     end
     
     function dropDownMenu:setValue(value)
-        --[[]
-        local params        = event.row.params
-        local index         = event.row.index
-        local ID            = ID
-        ddmValue            = params.value
-        buttonLabel.text    = ddmValue
-        dropDownMenu:hideTable(true)
-        --]]
         ddmValue = value
     end
     
-    function dropDownMenu:setID(id)
-        ID = id
-    end
-    
-    -- Add event listeners
-    
+    -- Add Event Listeners
     dropDownMenu:addEventListener("touch", dropDownMenu)
     dropDownMenu:addEventListener("tap", dropDownMenu)
     -- Default visibilty of table is false
