@@ -1,5 +1,10 @@
 require "CiderDebugger";
 local DDM = require "lib.DropDownMenu"
+local display = require "display"
+
+-- Set default anchor point of project top-left
+display.setDefault( "anchorX", 0 )
+display.setDefault( "anchorY", 0 )
 
 local cellData = {
     isCategory = false,
@@ -9,6 +14,18 @@ local cellData = {
 }
 
 local datas = {
+    {value = "istanbul"},
+    {value = "istanbul2"},
+    {value = "istanbul3"},
+    {value = "istanbul4"},
+    {value = "istanbul5"},
+    {value = "istanbul6"},
+    {value = "istanbul"},
+    {value = "istanbul2"},
+    {value = "istanbul3"},
+    {value = "istanbul4"},
+    {value = "istanbul5"},
+    {value = "istanbul6"},
     {value = "istanbul"},
     {value = "istanbul2"},
     {value = "istanbul3"},
@@ -25,7 +42,7 @@ local testDDM = DDM.new({
     height = 40,
     dataList = datas,
     onRowSelected = function (params)
-        print("" .. params.value)
+        
     end
     
 })

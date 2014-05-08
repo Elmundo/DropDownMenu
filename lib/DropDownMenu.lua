@@ -11,7 +11,10 @@ local cDefaultFont              = "DefaultFont"
 local cDefaultVisibleCellCount  = 4
 local cDefaultCellXPadding      = 6
 local cDefaultBorder            = 3
-local cDefaultButtonValue       = "SEÇİNİZ"
+local cDefaultButtonValue       = "CHOOSE"
+local cDefaultRowColor          = { default={ 1, 1, 1 }, over={ 1, 0.5, 0, 0.2 } }
+local cDefaultLineColor         = { 0.5, 0.5, 0.5 }
+local cDefaultCornerRadius      = 0.5
 
 -- PARAMS
 --[[ params = {
@@ -72,8 +75,8 @@ function DropDownMenu.new( params )
     -- Optional --
     local isCategory       = rowProperties.isCategory or false
     local rowHeight        = rowProperties.rowHeight  or height
-    local rowColor         = rowProperties.rowColor   or { default={ 1, 1, 1 }, over={ 1, 0.5, 0, 0.2 } }
-    local lineColor        = rowProperties.lineColor  or { 0.5, 0.5, 0.5 }
+    local rowColor         = rowProperties.rowColor   or cDefaultRowColor
+    local lineColor        = rowProperties.lineColor  or cDefaultLineColor
     local labelFont        = nil
     local labelSize        = nil
     -----------------------------
@@ -94,8 +97,8 @@ function DropDownMenu.new( params )
     
     -- Flags
     local isButtonActive = false
-    local ddmValue       = cDefaultButtonValue
     local isTableHidden  = true
+    local ddmValue       = cDefaultButtonValue
     
     -----------------------------------------
     --       DDM Table Touch Events        --
@@ -107,12 +110,13 @@ function DropDownMenu.new( params )
         elseif event.phase == "release" then
             local params        = event.row.params
             local index         = event.row.index
+            local selectedData  = dataList[index]
             buttonLabel.text    = params.value
             dropDownMenu:hideTable(true)
             
             -- Invoke callback method
             onRowSelected{
-                dataList[index],
+                selectedData,
                 name,
                 index,
             }
@@ -128,7 +132,7 @@ function DropDownMenu.new( params )
         local rowHeight = row.contentHeight
         local rowWidth  = row.contentWidth
 
-        local rowTitle  = display.newText(row, params.value, 0, 0, rowWidth, rowHeight, nil, fontSize)
+        local rowTitle  = display.newText(row, params.value, 0, 0, rowWidth, rowHeight, native.systemFont, fontSize)
         rowTitle:setFillColor(0)
 
         row.contentHeight = row.contentHeight + rowTitle.height
@@ -142,22 +146,28 @@ function DropDownMenu.new( params )
     ------------------------
     -- Instantiate Button --
     ------------------------
-    local buttonWidth  = width + cDefaultBorder*2
-    local buttonHeight = height + cDefaultBorder*2
+    local buttonWidth  = width
+    local buttonHeight = height
+    -- Instantiate ButtonBG Object
     buttonBG = display.newRoundedRect(dropDownMenu, 
                                     -cDefaultBorder, 
                                     -cDefaultBorder, 
-                                    buttonWidth, 
-                                    buttonHeight, 
-                                    5)                           
+                                    buttonWidth + cDefaultBorder*2 , 
+                                    buttonHeight + cDefaultBorder*2, 
+                                    cDefaultCornerRadius)   
+                           
     buttonBG:setFillColor( 0.5, 0.5, 0.5 )
     
-    -- Button object
-    button = display.newRect(dropDownMenu, 0, 0, width, height)
+    -- Instantiate Button object
+    button = display.newRect(dropDownMenu, 0, 0, buttonWidth, buttonHeight)
     button:setFillColor( 1, 1, 1 )
     
-    -- Button laber
-    buttonLabel = display.newText(dropDownMenu, "CHOOSEN", 10, 10, buttonWidth, buttonHeight, nil, fontSize)
+    -- Instantiate Button label
+    buttonLabel = display.newText(dropDownMenu, cDefaultButtonValue, 0, 0, 0, buttonHeight, nil, fontSize)
+    buttonLabel.y = (buttonHeight * 0.5) - (fontSize * 0.5)
+    buttonLabel.x = cDefaultCellXPadding
+    --buttonLabel.y = buttonWidth * 0.5
+    
     buttonLabel:setFillColor(0)
     
     -----------------------
@@ -290,7 +300,9 @@ function DropDownMenu.new( params )
         ddmValue = value
     end
     
-    -- Add Event Listeners
+    -------------------------
+    -- Add Event Listeners --
+    -------------------------
     dropDownMenu:addEventListener("touch", dropDownMenu)
     dropDownMenu:addEventListener("tap", dropDownMenu)
     -- Default visibilty of table is false
