@@ -5,12 +5,12 @@ local widget  = require "widget"
 -- DropDownMenu Module
 local DropDownMenu = {}
 
--- Constant Values
+-- Constant Default Values
 local cDefaultFontSize          = 16
 local cDefaultFont              = "DefaultFont"
 local cDefaultVisibleCellCount  = 4
 local cDefaultCellXPadding      = 6
-local cDefaultBorder            = 3
+local cDefaultBorder            = 1
 local cDefaultButtonValue       = "CHOOSE"
 local cDefaultRowColor          = { default={ 1, 1, 1 }, over={ 1, 0.5, 0, 0.2 } }
 local cDefaultLineColor         = { 0.5, 0.5, 0.5 }
@@ -77,8 +77,6 @@ function DropDownMenu.new( params )
     local rowHeight        = rowProperties.rowHeight  or height
     local rowColor         = rowProperties.rowColor   or cDefaultRowColor
     local lineColor        = rowProperties.lineColor  or cDefaultLineColor
-    local labelFont        = nil
-    local labelSize        = nil
     -----------------------------
     
     -----------------------------
@@ -109,17 +107,13 @@ function DropDownMenu.new( params )
             
         elseif event.phase == "release" then
             local params        = event.row.params
-            local index         = event.row.index
-            local selectedData  = dataList[index]
-            buttonLabel.text    = params.value
+            local rowData       = dataList[event.row.index]
+            rowData.index = event.row.index
+            buttonLabel.text    = rowData.value
             dropDownMenu:hideTable(true)
             
             -- Invoke callback method
-            onRowSelected{
-                selectedData,
-                name,
-                index,
-            }
+            onRowSelected(name,rowData)
         end
 
     end
@@ -156,7 +150,7 @@ function DropDownMenu.new( params )
                                     buttonHeight + cDefaultBorder*2, 
                                     cDefaultCornerRadius)   
                            
-    buttonBG:setFillColor( 0.5, 0.5, 0.5 )
+    buttonBG:setFillColor( 0, 0, 0 )
     
     -- Instantiate Button object
     button = display.newRect(dropDownMenu, 0, 0, buttonWidth, buttonHeight)
@@ -175,11 +169,11 @@ function DropDownMenu.new( params )
     -----------------------
     ddmTable = widget.newTableView{
         x = 0,
-        y = buttonHeight + 2,
+        y = buttonHeight + cDefaultBorder,
         width = buttonWidth,
         height = visibleCellCount * rowHeight,
         noLines = noLines,
-        backgroundColor = { 1, 1, 1 },
+        backgroundColor = { 0, 0, 0 },
         onRowTouch = dropDownMenu.onRowTouch,
         onRowRender = dropDownMenu.onRowRender,
     }
@@ -199,7 +193,7 @@ function DropDownMenu.new( params )
     -- Instantiate ddm table --
     ---------------------------
     for i = 1, #dataList do
-        local params = dataList[1]
+        local params = dataList[i]
         
         ddmTable:insertRow{
                          
@@ -320,6 +314,5 @@ function DropDownMenu.new( params )
     
     return dropDownMenu
 end
-
 
 return DropDownMenu
