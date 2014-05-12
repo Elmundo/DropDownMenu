@@ -10,40 +10,29 @@ local cDefaultFontSize          = 16
 local cDefaultFont              = "DefaultFont"
 local cDefaultVisibleCellCount  = 4
 local cDefaultCellXPadding      = 6
-local cDefaultBorder            = 1
+local cDefaultBorder            = 2
 local cDefaultButtonValue       = "CHOOSE"
-local cDefaultRowColor          = { default={ 1, 1, 1 }, over={ 1, 0.5, 0, 0.2 } }
+local cDefaultRowColor          = { default={ 1, 1, 1 }, over={ 0.5, 0.5, 0.5} }
 local cDefaultLineColor         = { 0.5, 0.5, 0.5 }
 local cDefaultCornerRadius      = 0.5
 
--- PARAMS
 --[[ params = {
+        -- Simple Usage
+        name = ddmName,
         x = 0,
         y = 0,
         buttonWidth = width,
         buttonHeight = height,
-        defaultImage = dImage,
-        overImage = oImage,
+        onRowSelected = callback,
+        
+        -- Advanced Usage
+        buttonDefaultImageName = dImage,
+        buttonOverImageName = oImage,
         noLines = false,
         visibleCellCount = count,
         rowProperties = rowProperties,
-        userCustomDataList = Array,
-        ID = ID,
     }
 --]]
---[[ cellData = {
-        isCategory = false,
-        rowHeight = rh,
-        rowColor = { default={0.8, 0.8, 0.8}, , over={ 1, 0.5, 0, 0.2 }  }
-        lineColor = {1,0,0},
-    }
---]]
-
---[[ dataList = {
-        value = value,
-    }
---]]
-
 function DropDownMenu.new( params )
 
     -- New DropDownMenu object
@@ -114,6 +103,7 @@ function DropDownMenu.new( params )
             
             -- Invoke callback method
             onRowSelected(name,rowData)
+            button:setFillColor(1,1,1)
         end
 
     end
@@ -183,7 +173,7 @@ function DropDownMenu.new( params )
                                         buttonWidth + cDefaultBorder*2, 
                                         (visibleCellCount * rowHeight) + cDefaultBorder*2, 
                                         5)
-    ddmTableBG:setFillColor( 0.5, 0.5, 0.5 )
+    ddmTableBG:setFillColor( 0, 0, 0 )
     
     dropDownMenu:insert(dropDownMenu.numChildren+1, ddmTableBG)
     dropDownMenu:insert(dropDownMenu.numChildren+1, ddmTable)
@@ -250,7 +240,6 @@ function DropDownMenu.new( params )
         isTableHidden        = value
         ddmTable.isVisible   = not isTableHidden
         ddmTableBG.isVisible = not isTableHidden
-        --delegate.didHideDDMTable( ID, isTableHidden)
     end
     
     function dropDownMenu:hideDDM ( isHidden)
@@ -261,11 +250,16 @@ function DropDownMenu.new( params )
     function dropDownMenu:touch(event)
         
         if event.phase == "began" then
-        
+            button:setFillColor(1,218/255,47/255, 0.9)
         elseif event.phase == "moved" then
         
         elseif event.phase == "ended" then
             self:hideTable(not isTableHidden)
+            if isTableHidden then
+                button:setFillColor(1,1,1)
+            else
+                button:setFillColor(1,218,47/255, 0.9)
+            end
         end
         
         return true
