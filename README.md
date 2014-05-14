@@ -30,12 +30,14 @@ for i=1, #colorData do
     colorData[j] = rowData
 end
 
+-- Callback function that will be called when a row is clicked.
 local function onRowSelected(name, rowData)
         if name == "colors" then
             print("Selected color is " .. rowData.value)
         end
 end
 
+-- Initializing the DropDownMenu object
 local colorDDM = DDM.new({
                           name = "colors",
                           x = 50,
